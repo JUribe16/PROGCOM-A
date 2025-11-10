@@ -1,0 +1,3 @@
+# mensaje para inicialziar el proyecto en vs
+
+python -m streamlit run analisis_inversion.py
