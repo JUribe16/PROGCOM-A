@@ -1,0 +1,22 @@
+{
+    init: function(elevators, floors) {},
+        update: function(dt, elevators, floors) {
+            var arr = floors.filter(f => f.buttonStates.up).map(f => f.floorNum()).concat(floors.filter(f => f.buttonStates.down).map(f => -1*f.floorNum()))
+            var ds = (a,b) => Math.abs( Math.abs(a) - Math.abs(b) )
+
+            elevators.sort((a,b) => b.maxPassengerCount() - a.maxPassengerCount()).map((e,i) => {
+
+                var [curr_floor, pressed] = [e.currentFloor(), e.getPressedFloors()]
+                var dir = Math.sign(pressed.filter(f => f != curr_floor).pop()-curr_floor) || 0
+
+                var add = dir == 0 ? arr : arr.filter(el => Math.sign(el) == dir && [dir, 0].includes(Math.sign(Math.abs(el)-curr_floor)))
+                var possible_options = (e.loadFactor() < 0.5 ? add : []).concat(pressed)
+
+                var floor = possible_options.reduce((m, f) => ds(curr_floor,m) < ds(curr_floor,f)  ? m : f, Infinity)
+
+                if (isFinite(floor)){
+                    arr = e.stop() || arr.filter(e => e != floor)
+                    e.goingDownIndicator(dir <= 0).goingUpIndicator(dir >= 0).goToFloor(Math.abs(floor));
+                }
+            })
+        }}
